@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../api";
 import { isUserLoggedIn } from "../utils/session";
 
-function Login() {
+function Signup() {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,33 +24,60 @@ function Login() {
     }
   }, [navigate]);
 
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
 
-    if (!email.trim() || !password.trim()) {
-      setError("Please enter your email and password.");
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.password.trim() ||
+      !formData.confirmPassword.trim()
+    ) {
+      setError("Please fill in all fields.");
       return;
     }
 
-    if (!email.includes("@")) {
+    if (!formData.email.includes("@")) {
       setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must contain at least 6 characters.");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const response = await api.login({ email: email.trim(), password });
+      const response = await api.signup({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("vivaMateToken", response.token);
+      localStorage.setItem("vivaMateUserName", response.user.name);
       localStorage.setItem("vivaMateUserEmail", response.user.email);
-      localStorage.setItem("vivaMateUserName", response.user.name || response.user.email.split("@")[0]);
 
-      const destination = location.state?.from || "/dashboard";
-      navigate(destination, { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (requestError) {
-      setError(requestError.message || "Login failed. Please try again.");
+      setError(requestError.message || "Signup failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -74,12 +101,12 @@ function Login() {
           </Link>
         </div>
 
-        <div className="auth-card">
+        <div className="auth-card signup-card">
           <div className="auth-heading">
-            <span className="auth-eyebrow">WELCOME BACK</span>
-            <h1>Sign in to your account</h1>
+            <span className="auth-eyebrow">GET STARTED</span>
+            <h1>Create your account</h1>
             <p>
-              Continue your learning journey with VivaMate AI.
+              Start organizing your academic life today.
             </p>
           </div>
 
@@ -87,14 +114,29 @@ function Login() {
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <label>
+              Full name
+              <div className="input-wrapper">
+                <span>♙</span>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Muhammad Farman"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </div>
+            </label>
+
+            <label>
               Email address
               <div className="input-wrapper">
                 <span>✉</span>
                 <input
                   type="email"
+                  name="email"
                   placeholder="you@example.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  value={formData.email}
+                  onChange={handleChange}
                 />
               </div>
             </label>
@@ -105,11 +147,10 @@ function Login() {
                 <span>▣</span>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(event) =>
-                    setPassword(event.target.value)
-                  }
+                  name="password"
+                  placeholder="At least 6 characters"
+                  value={formData.password}
+                  onChange={handleChange}
                 />
                 <button
                   type="button"
@@ -123,50 +164,36 @@ function Login() {
               </div>
             </label>
 
-            <div className="auth-form-options">
-              <label className="remember-option">
-                <input type="checkbox" />
-                <span>Remember me</span>
-              </label>
+            <label>
+              Confirm password
+              <div className="input-wrapper">
+                <span>▣</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Repeat your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+              </div>
+            </label>
 
-              <button
-                type="button"
-                className="forgot-button"
-                onClick={() =>
-                  window.alert(
-                    "Password recovery will be available when backend authentication is connected."
-                  )
-                }
-              >
-                Forgot password?
-              </button>
-            </div>
+            <label className="terms-option">
+              <input type="checkbox" required />
+              <span>
+                I agree to the terms and privacy policy.
+              </span>
+            </label>
 
             <button type="submit" className="auth-submit-button" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              {isSubmitting ? "Creating account..." : "Create Account"}
               <span>→</span>
             </button>
           </form>
 
-          <div className="auth-divider">
-            <span>or continue with</span>
-          </div>
-
-          <button
-            className="social-login-button"
-            onClick={() =>
-              window.alert(
-                "Social login will be connected in the backend version."
-              )
-            }
-          >
-            <span>G</span>
-            Continue with Google
-          </button>
-
           <p className="auth-bottom-text">
-            Don&apos;t have an account?{" "}
-            <Link to="/signup">Create an account</Link>
+            Already have an account?{" "}
+            <Link to="/login">Sign in</Link>
           </p>
         </div>
 
@@ -178,4 +205,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Signup;

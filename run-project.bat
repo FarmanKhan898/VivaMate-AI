@@ -8,7 +8,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Starting VivaMate-AI...
-npm install
-npm run dev -- --host 0.0.0.0
+echo Starting VivaMate-AI backend...
+start "VivaMate Backend" cmd /k "cd /d ""%~dp0backend"" && npm install && npm run dev"
+
+echo Starting VivaMate-AI frontend...
+start "VivaMate Frontend" cmd /k "cd /d ""%~dp0client"" && npm install && npm run dev -- --host 0.0.0.0"
+
+echo VivaMate is starting. Open http://localhost:5173/
 pause
