@@ -23,12 +23,23 @@ const applications = [
     directory: "backend",
     dependencies: ["express", "mongoose", "jsonwebtoken", "bcryptjs", "dotenv"],
     command: ["run", "dev"],
+    url: "http://127.0.0.1:5000/api/health",
+    async isReady(response) {
+      if (!response.ok) return false;
+      const body = await response.json();
+      return body.ok === true;
+    },
   },
   {
     name: "Frontend",
     directory: "client",
     dependencies: ["react", "react-dom", "react-router-dom", "vite", "gsap"],
     command: ["run", "dev", "--", "--host", "0.0.0.0", "--strictPort"],
+    url: "http://127.0.0.1:5173/",
+    async isReady(response) {
+      if (!response.ok) return false;
+      return (await response.text()).includes("<title>VivaMate AI</title>");
+    },
   },
 ];
 
@@ -60,6 +71,15 @@ async function installMissingDependencies(application) {
 
   console.log(`Installing ${application.name.toLowerCase()} dependencies...`);
   await runNpm(["install"], appDirectory);
+}
+
+async function isAlreadyRunning(application) {
+  try {
+    const response = await fetch(application.url, { signal: AbortSignal.timeout(1500) });
+    return await application.isReady(response);
+  } catch {
+    return false;
+  }
 }
 
 function stopProcess(child) {
@@ -96,6 +116,19 @@ async function main() {
   console.log("Starting the VivaMate API and web app. Stop both with Ctrl+C.");
   console.log("Web app: http://localhost:5173/  |  API: http://localhost:5000/api/health");
 
+  const runningServices = await Promise.all(applications.map(isAlreadyRunning));
+  applications.forEach((application, index) => {
+    if (runningServices[index]) {
+      console.log(`${application.name} is already running; reusing it.`);
+    }
+  });
+
+  const servicesToStart = applications.filter((_, index) => !runningServices[index]);
+  if (servicesToStart.length === 0) {
+    console.log("VivaMate is already running. You can use the open app.");
+    return;
+  }
+
   const children = [];
   let stopping = false;
 
@@ -109,7 +142,7 @@ async function main() {
   process.once("SIGINT", () => stopAll(0));
   process.once("SIGTERM", () => stopAll(0));
 
-  for (const application of applications) {
+  for (const application of servicesToStart) {
     const child = spawnNpm(application.command, {
       cwd: path.join(projectRoot, application.directory),
       stdio: "inherit",
