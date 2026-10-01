@@ -33,7 +33,7 @@ function Login() {
       return;
     }
 
-    if (!email.includes("@")) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -83,7 +83,14 @@ function Login() {
             </p>
           </div>
 
-          {error && <div className="form-error">{error}</div>}
+          {error && (
+            <div className="form-error" role="alert">
+              <p>{error}</p>
+              <span>
+                New to VivaMate? <Link to="/signup">Create an account</Link>
+              </span>
+            </div>
+          )}
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <label>

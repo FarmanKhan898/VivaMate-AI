@@ -7,7 +7,7 @@ import { authMiddleware } from './middleware/auth.js';
 import User from './models/User.js';
 import Subject from './models/Subject.js';
 import { generateToken } from './utils/jwt.js';
-import { memoryStore } from './data/store.js';
+import { memoryStore, persistMemoryStore } from './data/store.js';
 import bcrypt from 'bcryptjs';
 
 dotenv.config();
@@ -33,7 +33,9 @@ app.post('/api/auth/signup', async (req, res) => {
     const emailLower = email.toLowerCase();
 
     const existingUser = memoryStore.users.find((user) => user.email === emailLower)
-      || (await User.findOne({ email: emailLower }).catch(() => null));
+      || (mongoose.connection.readyState === 1
+        ? await User.findOne({ email: emailLower }).catch(() => null)
+        : null);
 
     if (existingUser) {
       return res.status(409).json({ message: 'User already exists.' });
@@ -51,12 +53,17 @@ app.post('/api/auth/signup', async (req, res) => {
     };
 
     memoryStore.users.push(user);
+    if (mongoose.connection.readyState !== 1) {
+      persistMemoryStore();
+    }
 
-    const createdUser = await User.create({
-      name,
-      email: emailLower,
-      password: hashedPassword,
-    }).catch(() => null);
+    const createdUser = mongoose.connection.readyState === 1
+      ? await User.create({
+          name,
+          email: emailLower,
+          password: hashedPassword,
+        }).catch(() => null)
+      : null;
 
     const finalUser = createdUser || user;
 
@@ -84,16 +91,18 @@ app.post('/api/auth/login', async (req, res) => {
     const emailLower = email.toLowerCase();
 
     const user = memoryStore.users.find((item) => item.email === emailLower)
-      || (await User.findOne({ email: emailLower }).catch(() => null));
+      || (mongoose.connection.readyState === 1
+        ? await User.findOne({ email: emailLower }).catch(() => null)
+        : null);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(401).json({ message: 'Email or password is incorrect.' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      return res.status(401).json({ message: 'Invalid password.' });
+      return res.status(401).json({ message: 'Email or password is incorrect.' });
     }
 
     return res.json({

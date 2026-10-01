@@ -6,6 +6,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+backend/data/store.json
 
 # Build output
 dist/

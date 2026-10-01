@@ -373,7 +373,7 @@ updatedAt   Date      (auto)
 ```
 
 ### In-Memory Mode (Default / fallback)
-If `MONGO_URI` is not set or the MongoDB connection fails, the app automatically falls back to an in-memory store (`data/store.js`). Data is lost when the server restarts. This is useful for quick local development without needing MongoDB installed.
+If `MONGO_URI` is not set or the MongoDB connection fails, the app uses a local fallback store (`data/store.js`). Registered accounts (with bcrypt-hashed passwords) are saved to the ignored `backend/data/store.json` file so they remain available after a restart. Other in-memory activity may reset when the server restarts. This mode is intended for local development; use MongoDB for shared or production deployments.
 
 ---
 
