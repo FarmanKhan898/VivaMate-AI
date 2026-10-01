@@ -155,17 +155,18 @@ npm --version
 ### Quick Start (One Click)
 
 #### Windows
-Double-click `run-project.bat` in the project root.
+Double-click `run-project.bat` in the project root, or run `npm start` from a terminal in the project root.
 
 This will automatically:
-1. Open a terminal for the backend and run `npm install && npm run dev`
-2. Open a terminal for the frontend and run `npm install && npm run dev`
-3. The app will be available at **http://localhost:5173/**
+1. Install backend and frontend dependencies if they are missing.
+2. Start the backend API and frontend together.
+3. Open **http://localhost:5173/** on the computer running the project. To use it from another device on the same network, open `http://<computer-ip>:5173/` there. Keep the terminal open while using VivaMate.
 
 #### macOS / Linux
 ```bash
 chmod +x run-project.sh
 ./run-project.sh
+# Or: npm start
 ```
 
 ---
@@ -408,8 +409,10 @@ The AI assistant (`/assistant`) is a built-in rule-based chat system that respon
 
 ### Root
 ```bash
-npm run dev          # Start the frontend (client) with host 0.0.0.0
-npm run start        # Install client deps and start frontend
+npm start            # Install missing app dependencies and run backend + frontend
+npm run dev          # Same full-project runner for development
+npm run run-app      # Same full-project runner
+npm run install-all  # Install backend and frontend dependencies only
 ```
 
 ### Backend (`/backend`)

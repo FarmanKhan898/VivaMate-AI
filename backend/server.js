@@ -170,6 +170,6 @@ app.get('/api/health-check', (req, res) => {
 
 connectDB();
 
-app.listen(PORT, () => {
-  console.log(`VivaMate backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`VivaMate backend running on http://0.0.0.0:${PORT}`);
 });

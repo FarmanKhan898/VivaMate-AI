@@ -2,10 +2,10 @@
   "name": "vivamate-ai",
   "private": true,
   "scripts": {
-    "start": "npm --prefix client install && npm --prefix client run dev -- --host 0.0.0.0",
-    "dev": "npm --prefix client run dev -- --host 0.0.0.0",
-    "run-app": "npm --prefix client run dev -- --host 0.0.0.0",
-    "install-client": "npm --prefix client install"
+    "start": "node scripts/run-project.js",
+    "dev": "node scripts/run-project.js",
+    "run-app": "node scripts/run-project.js",
+    "install-all": "npm --prefix backend install && npm --prefix client install"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
