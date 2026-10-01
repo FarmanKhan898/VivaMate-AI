@@ -7,4 +7,4 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 echo "Starting the complete VivaMate AI project..."
-npm start
+npm start -- "$@"

@@ -23,7 +23,7 @@ if not exist "%NODE_DIR%npm.cmd" (
 )
 
 echo Starting the complete VivaMate AI project...
-call "%NODE_DIR%npm.cmd" start
+call "%NODE_DIR%npm.cmd" start -- %*
 if errorlevel 1 (
     echo VivaMate could not start. Check the error above.
     pause

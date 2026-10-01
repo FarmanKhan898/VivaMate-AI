@@ -5,6 +5,8 @@ const path = require("node:path");
 const projectRoot = path.resolve(__dirname, "..");
 const isWindows = process.platform === "win32";
 const npmCli = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+const appUrl = "http://localhost:5173/";
+const shouldOpenBrowser = !process.argv.includes("--no-open");
 const childEnv = { ...process.env };
 const pathKey = Object.keys(childEnv).find((key) => key.toLowerCase() === "path") || "PATH";
 childEnv[pathKey] = `${path.dirname(process.execPath)}${path.delimiter}${childEnv[pathKey] || ""}`;
@@ -35,7 +37,7 @@ const applications = [
     directory: "client",
     dependencies: ["react", "react-dom", "react-router-dom", "vite", "gsap"],
     command: ["run", "dev", "--", "--host", "0.0.0.0", "--strictPort"],
-    url: "http://127.0.0.1:5173/",
+    url: appUrl,
     async isReady(response) {
       if (!response.ok) return false;
       return (await response.text()).includes("<title>VivaMate AI</title>");
@@ -82,6 +84,43 @@ async function isAlreadyRunning(application) {
   }
 }
 
+function openAppInBrowser() {
+  let opener;
+  let args;
+
+  if (isWindows) {
+    const commandPrompt = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "cmd.exe");
+    opener = commandPrompt;
+    args = ["/d", "/c", `start "" "${appUrl}"`];
+  } else if (process.platform === "darwin") {
+    opener = "open";
+    args = [appUrl];
+  } else {
+    opener = "xdg-open";
+    args = [appUrl];
+  }
+
+  const browser = spawn(opener, args, { detached: true, stdio: "ignore", windowsHide: true });
+  browser.on("error", (error) => {
+    console.log(`The app is ready at ${appUrl}. Open it in your browser (${error.message}).`);
+  });
+  browser.unref();
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function waitForService(application, isStopping) {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    if (isStopping()) return false;
+    if (await isAlreadyRunning(application)) return true;
+    await wait(500);
+  }
+
+  return false;
+}
+
 function stopProcess(child) {
   if (!child.pid || child.exitCode !== null || child.killed) return;
 
@@ -125,7 +164,8 @@ async function main() {
 
   const servicesToStart = applications.filter((_, index) => !runningServices[index]);
   if (servicesToStart.length === 0) {
-    console.log("VivaMate is already running. You can use the open app.");
+    console.log("VivaMate is already running.");
+    if (shouldOpenBrowser) openAppInBrowser();
     return;
   }
 
@@ -163,6 +203,20 @@ async function main() {
       stopAll(code || 1);
     });
   }
+
+  const ready = await Promise.all(applications.map((application, index) =>
+    runningServices[index] ? true : waitForService(application, () => stopping)
+  ));
+
+  if (stopping) return;
+  if (!ready.every(Boolean)) {
+    console.error("VivaMate did not become ready in time. Check the service output above.");
+    stopAll(1);
+    return;
+  }
+
+  console.log("Backend and frontend are ready.");
+  if (shouldOpenBrowser) openAppInBrowser();
 }
 
 main();
