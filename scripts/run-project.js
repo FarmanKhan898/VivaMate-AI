@@ -4,7 +4,18 @@ const path = require("node:path");
 
 const projectRoot = path.resolve(__dirname, "..");
 const isWindows = process.platform === "win32";
-const npmCommand = isWindows ? "npm.cmd" : "npm";
+const npmCli = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+const childEnv = { ...process.env };
+const pathKey = Object.keys(childEnv).find((key) => key.toLowerCase() === "path") || "PATH";
+childEnv[pathKey] = `${path.dirname(process.execPath)}${path.delimiter}${childEnv[pathKey] || ""}`;
+
+function spawnNpm(args, options) {
+  if (isWindows && existsSync(npmCli)) {
+    return spawn(process.execPath, [npmCli, ...args], options);
+  }
+
+  return spawn("npm", args, options);
+}
 
 const applications = [
   {
@@ -23,10 +34,11 @@ const applications = [
 
 function runNpm(args, cwd) {
   return new Promise((resolve, reject) => {
-    const child = spawn(npmCommand, args, {
+    const child = spawnNpm(args, {
       cwd,
       stdio: "inherit",
-      shell: isWindows,
+      shell: false,
+      env: childEnv,
       windowsHide: true,
     });
 
@@ -54,10 +66,12 @@ function stopProcess(child) {
   if (!child.pid || child.exitCode !== null || child.killed) return;
 
   if (isWindows) {
-    spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+    const taskkill = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "taskkill.exe");
+    const killer = spawn(taskkill, ["/pid", String(child.pid), "/T", "/F"], {
       stdio: "ignore",
       windowsHide: true,
     });
+    killer.on("error", (error) => console.error(`Could not stop child processes: ${error.message}`));
     return;
   }
 
@@ -96,10 +110,11 @@ async function main() {
   process.once("SIGTERM", () => stopAll(0));
 
   for (const application of applications) {
-    const child = spawn(npmCommand, application.command, {
+    const child = spawnNpm(application.command, {
       cwd: path.join(projectRoot, application.directory),
       stdio: "inherit",
-      shell: isWindows,
+      shell: false,
+      env: childEnv,
       windowsHide: true,
       detached: !isWindows,
     });
