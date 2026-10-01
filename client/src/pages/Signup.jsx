@@ -70,6 +70,19 @@ function Signup() {
         password: formData.password,
       });
 
+      // Save to local accounts so login works if backend restarts and loses in-memory data
+      const localAccounts = JSON.parse(localStorage.getItem("vivaMateLocalAccounts") || "[]");
+      const alreadySaved = localAccounts.some((acc) => acc.email === formData.email.trim().toLowerCase());
+      if (!alreadySaved) {
+        localAccounts.push({
+          id: response.user.id,
+          name: response.user.name,
+          email: response.user.email,
+          password: formData.password,
+        });
+        localStorage.setItem("vivaMateLocalAccounts", JSON.stringify(localAccounts));
+      }
+
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("vivaMateToken", response.token);
       localStorage.setItem("vivaMateUserName", response.user.name);

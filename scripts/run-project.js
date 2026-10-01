@@ -35,7 +35,7 @@ const applications = [
   {
     name: "Frontend",
     directory: "client",
-    dependencies: ["react", "react-dom", "react-router-dom", "vite", "gsap"],
+    dependencies: ["react", "react-dom", "react-router-dom", "vite"],
     command: ["run", "dev", "--", "--host", "0.0.0.0", "--strictPort"],
     url: appUrl,
     async isReady(response) {

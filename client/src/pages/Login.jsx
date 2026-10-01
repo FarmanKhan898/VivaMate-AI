@@ -24,6 +24,13 @@ function Login() {
     }
   }, [navigate]);
 
+  const saveSession = (token, userEmail, userName) => {
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("vivaMateToken", token);
+    localStorage.setItem("vivaMateUserEmail", userEmail);
+    localStorage.setItem("vivaMateUserName", userName);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -38,19 +45,58 @@ function Login() {
       return;
     }
 
+    setIsSubmitting(true);
+
+    // 1. Try backend
     try {
-      setIsSubmitting(true);
       const response = await api.login({ email: email.trim(), password });
+      saveSession(
+        response.token,
+        response.user.email,
+        response.user.name || response.user.email.split("@")[0]
+      );
+      navigate(location.state?.from || "/dashboard", { replace: true });
+      return;
+    } catch (backendError) {
+      const isNetworkError =
+        backendError.message === "Failed to fetch" ||
+        backendError.message.includes("NetworkError") ||
+        backendError.message.includes("fetch");
 
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("vivaMateToken", response.token);
-      localStorage.setItem("vivaMateUserEmail", response.user.email);
-      localStorage.setItem("vivaMateUserName", response.user.name || response.user.email.split("@")[0]);
+      // Backend returned a real auth error (wrong password / not found) — show it
+      if (!isNetworkError) {
+        setError(backendError.message || "Incorrect email or password.");
+        setIsSubmitting(false);
+        return;
+      }
+      // Backend unreachable — fall through to local fallback
+    }
 
-      const destination = location.state?.from || "/dashboard";
-      navigate(destination, { replace: true });
-    } catch (requestError) {
-      setError(requestError.message || "Login failed. Please try again.");
+    // 2. Local fallback — check accounts saved by offline signup
+    try {
+      const localAccounts = JSON.parse(
+        localStorage.getItem("vivaMateLocalAccounts") || "[]"
+      );
+      const match = localAccounts.find(
+        (acc) => acc.email === email.trim().toLowerCase()
+      );
+
+      if (!match || match.password !== password) {
+        setError(
+          "The backend is offline and no matching local account was found. " +
+          "Please start the backend server or sign up again."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      const fakeToken = btoa(
+        JSON.stringify({ id: match.id, email: match.email, name: match.name })
+      );
+      saveSession(fakeToken, match.email, match.name);
+      navigate(location.state?.from || "/dashboard", { replace: true });
+    } catch {
+      setError("Login failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,16 +160,12 @@ function Login() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(event) =>
-                    setPassword(event.target.value)
-                  }
+                  onChange={(event) => setPassword(event.target.value)}
                 />
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={() =>
-                    setShowPassword((previous) => !previous)
-                  }
+                  onClick={() => setShowPassword((previous) => !previous)}
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -149,7 +191,11 @@ function Login() {
               </button>
             </div>
 
-            <button type="submit" className="auth-submit-button" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="auth-submit-button"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Signing in..." : "Sign In"}
               <span>→</span>
             </button>
