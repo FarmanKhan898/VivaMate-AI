@@ -1,7 +1,27 @@
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
   const navigate = useNavigate();
+  const pageRef = useRef(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const context = gsap.context(() => {
+      const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
+      intro.from(".hero-content > *", { y: 22, autoAlpha: 0, duration: 0.6, stagger: 0.1 });
+      intro.from(".hero-dashboard-card", { y: 28, rotate: 0, autoAlpha: 0, duration: 0.75 }, "-=0.5");
+      gsap.from(".feature-card", {
+        y: 20, autoAlpha: 0, duration: 0.55, stagger: 0.1,
+        scrollTrigger: { trigger: ".features-section", start: "top 78%", once: true },
+      });
+      gsap.to(".floating-ai-card", { y: -8, duration: 2.2, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    }, pageRef);
+    return () => context.revert();
+  }, []);
 
   const features = [
     {
@@ -31,7 +51,7 @@ function Home() {
   ];
 
   return (
-    <div className="landing-page">
+    <div className="landing-page" ref={pageRef}>
       <header className="landing-navbar">
         <div className="landing-brand">
           <div className="landing-brand-icon">V</div>

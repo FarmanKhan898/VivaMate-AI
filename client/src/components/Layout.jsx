@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { gsap } from "gsap";
 import {
   NavLink,
   Outlet,
@@ -45,6 +46,15 @@ function Layout() {
     setSidebarOpen(false);
     setShowNotifications(false);
     setShowProfileMenu(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const content = document.querySelector(".app-page-content > *");
+    if (!content || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const tween = gsap.fromTo(content, { autoAlpha: 0, y: 12 }, {
+      autoAlpha: 1, y: 0, duration: 0.42, ease: "power2.out", clearProps: "all",
+    });
+    return () => tween.kill();
   }, [location.pathname]);
 
   useEffect(() => {
@@ -165,6 +175,11 @@ function Layout() {
       icon: "✎",
     },
     {
+      name: "Study History",
+      path: "/history",
+      icon: "◷",
+    },
+    {
       name: "AI Assistant",
       path: "/assistant",
       icon: "✦",
@@ -186,6 +201,7 @@ function Layout() {
       "/documents": "My Documents",
       "/tasks": "My Tasks",
       "/quizzes": "Quizzes",
+      "/history": "Study History",
       "/assistant": "AI Assistant",
       "/profile": "My Profile",
     };

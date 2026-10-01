@@ -1,37 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 
-const initialTasks = [
-  {
-    id: 1,
-    title: "Data Structures Assignment",
-    course: "Data Structures",
-    due: "Tomorrow",
-    priority: "High",
-    completed: false,
-  },
-  {
-    id: 2,
-    title: "Operating Systems Quiz",
-    course: "Operating Systems",
-    due: "Friday",
-    priority: "Medium",
-    completed: false,
-  },
-  {
-    id: 3,
-    title: "Database Report",
-    course: "Database Systems",
-    due: "Next week",
-    priority: "Low",
-    completed: true,
-  },
-];
-
 function Tasks() {
   const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem("vivaMateTasks");
-
-    return savedTasks ? JSON.parse(savedTasks) : initialTasks;
+    try {
+      return JSON.parse(localStorage.getItem("vivaMateTasks") || "[]");
+    } catch {
+      return [];
+    }
   });
 
   const [filter, setFilter] = useState("All");

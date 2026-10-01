@@ -12,11 +12,20 @@ export const SESSION_KEYS = {
 };
 
 export function isUserLoggedIn() {
-  return localStorage.getItem(SESSION_KEYS.isLoggedIn) === "true";
+  return localStorage.getItem(SESSION_KEYS.isLoggedIn) === "true"
+    && Boolean(localStorage.getItem("vivaMateToken"));
 }
 
 export function clearUserSession() {
-  Object.values(SESSION_KEYS).forEach((key) => {
+  [
+    SESSION_KEYS.isLoggedIn,
+    SESSION_KEYS.userName,
+    SESSION_KEYS.userEmail,
+    SESSION_KEYS.university,
+    SESSION_KEYS.program,
+    SESSION_KEYS.semester,
+    "vivaMateToken",
+  ].forEach((key) => {
     localStorage.removeItem(key);
   });
 }

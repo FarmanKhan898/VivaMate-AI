@@ -8,38 +8,11 @@ function Dashboard() {
     localStorage.getItem("vivaMateUserName") || "Student";
 
   const tasks = useMemo(() => {
-    const savedTasks = localStorage.getItem("vivaMateTasks");
-
-    if (savedTasks) {
-      return JSON.parse(savedTasks);
+    try {
+      return JSON.parse(localStorage.getItem("vivaMateTasks") || "[]");
+    } catch {
+      return [];
     }
-
-    return [
-      {
-        id: 1,
-        title: "Data Structures Assignment",
-        course: "Data Structures",
-        due: "Tomorrow",
-        priority: "High",
-        completed: false,
-      },
-      {
-        id: 2,
-        title: "Operating Systems Quiz",
-        course: "Operating Systems",
-        due: "Friday",
-        priority: "Medium",
-        completed: false,
-      },
-      {
-        id: 3,
-        title: "Database Report",
-        course: "Database Systems",
-        due: "Next week",
-        priority: "Low",
-        completed: true,
-      },
-    ];
   }, []);
 
   const history = useMemo(() => {
@@ -65,6 +38,24 @@ function Dashboard() {
       return [];
     }
   }, []);
+
+  const weeklyActivity = useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+      const dateKey = date.toLocaleDateString();
+      return {
+        label: date.toLocaleDateString(undefined, { weekday: "short" }),
+        count: history.filter((entry) => {
+          const entryDate = new Date(entry.date);
+          return !Number.isNaN(entryDate.getTime()) && entryDate.toLocaleDateString() === dateKey;
+        }).length,
+      };
+    });
+  }, [history]);
+  const activityMaximum = Math.max(...weeklyActivity.map((day) => day.count), 1);
+  const weeklyAttempts = weeklyActivity.reduce((total, day) => total + day.count, 0);
 
   const completedTasks = tasks.filter((task) => task.completed).length;
   const averageScore = history.length
@@ -113,18 +104,18 @@ function Dashboard() {
             <div className="stat-icon purple">◷</div>
             <span className="stat-change positive">+12.5%</span>
           </div>
-          <span className="stat-label">Study Hours</span>
-          <strong className="stat-value">{(generatedSets.length * 3.5 + 18).toFixed(1)}h</strong>
-          <p>This week</p>
+          <span className="stat-label">Practice Sessions</span>
+          <strong className="stat-value">{history.length}</strong>
+          <p>Recorded quiz attempts</p>
         </div>
 
         <div className="stat-card">
           <div className="stat-card-top">
             <div className="stat-icon blue">✓</div>
-            <span className="stat-change positive">+8.2%</span>
+            <span className="stat-change neutral">To date</span>
           </div>
           <span className="stat-label">Completed Tasks</span>
-          <strong className="stat-value">{completedTasks + Math.max(5, history.length)}</strong>
+          <strong className="stat-value">{completedTasks}</strong>
           <p>Across all courses</p>
         </div>
 
@@ -134,7 +125,7 @@ function Dashboard() {
             <span className="stat-change neutral">Active</span>
           </div>
           <span className="stat-label">Active Subjects</span>
-          <strong className="stat-value">{subjects.length || 5}</strong>
+          <strong className="stat-value">{subjects.length}</strong>
           <p>Currently enrolled</p>
         </div>
 
@@ -173,22 +164,18 @@ function Dashboard() {
             <div className="chart-legend">
               <span>
                 <i className="legend-dot purple-dot" />
-                Study hours
-              </span>
-              <span>
-                <i className="legend-dot gray-dot" />
-                Target
+                Quiz attempts
               </span>
             </div>
           </div>
 
           <div className="activity-chart">
             <div className="chart-y-axis">
-              <span>8h</span>
-              <span>6h</span>
-              <span>4h</span>
-              <span>2h</span>
-              <span>0h</span>
+              <span>{activityMaximum}</span>
+              <span>{Math.ceil(activityMaximum * 0.75)}</span>
+              <span>{Math.ceil(activityMaximum * 0.5)}</span>
+              <span>{Math.ceil(activityMaximum * 0.25)}</span>
+              <span>0</span>
             </div>
 
             <div className="chart-area">
@@ -198,36 +185,18 @@ function Dashboard() {
               <div className="chart-grid-line line-four" />
               <div className="chart-grid-line line-five" />
 
-              <div className="chart-bars">
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "42%" }} />
-                  <span>Mon</span>
+              {weeklyAttempts === 0 ? (
+                <div className="chart-empty-state">No quiz activity yet. Complete a practice quiz to see your weekly progress.</div>
+              ) : (
+                <div className="chart-bars">
+                  {weeklyActivity.map((day) => (
+                    <div className="bar-column" key={day.label} title={`${day.count} attempts`}>
+                      <div className={`bar-value ${day.count === 0 ? "empty" : ""}`} style={{ height: `${(day.count / activityMaximum) * 82}%` }} />
+                      <span>{day.label}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "68%" }} />
-                  <span>Tue</span>
-                </div>
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "54%" }} />
-                  <span>Wed</span>
-                </div>
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "82%" }} />
-                  <span>Thu</span>
-                </div>
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "64%" }} />
-                  <span>Fri</span>
-                </div>
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "35%" }} />
-                  <span>Sat</span>
-                </div>
-                <div className="bar-column">
-                  <div className="bar-value" style={{ height: "25%" }} />
-                  <span>Sun</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -241,7 +210,7 @@ function Dashboard() {
             <span className="panel-menu">•••</span>
           </div>
 
-          <div className="circular-progress">
+          <div className="circular-progress" style={{ "--progress-angle": `${progress * 3.6}deg` }}>
             <div className="circular-progress-inner">
               <strong>{progress}%</strong>
               <span>Completed</span>
@@ -287,7 +256,7 @@ function Dashboard() {
           </div>
 
           <div className="dashboard-task-list">
-            {tasks.slice(0, 3).map((task) => (
+            {tasks.filter((task) => !task.completed).slice(0, 3).map((task) => (
               <div className="dashboard-task-item" key={task.id}>
                 <div
                   className={`task-status-icon ${
@@ -311,6 +280,9 @@ function Dashboard() {
                 </span>
               </div>
             ))}
+            {tasks.filter((task) => !task.completed).length === 0 && (
+              <p className="dashboard-empty-note">No pending tasks yet. Add a task to plan your next study session.</p>
+            )}
           </div>
         </div>
 
@@ -330,11 +302,7 @@ function Dashboard() {
           </div>
 
           <div className="recent-course-list">
-            {(subjects.length ? subjects : [
-              { id: 1, name: 'Database Normalization', description: 'AI practice set ready' },
-              { id: 2, name: 'Operating Systems', description: 'Current revision plan' },
-              { id: 3, name: 'Data Structures', description: 'Mock viva scheduled' },
-            ]).slice(0, 3).map((subject, index) => (
+            {subjects.slice(0, 3).map((subject, index) => (
               <div className="recent-course-item" key={subject.id || index}>
                 <div className={`course-color-icon ${index % 3 === 0 ? 'purple-bg' : index % 3 === 1 ? 'blue-bg' : 'orange-bg'}`}>
                   {subject.name.slice(0, 2).toUpperCase()}
@@ -342,13 +310,12 @@ function Dashboard() {
                 <div className="recent-course-info">
                   <strong>{subject.name}</strong>
                   <span>{subject.description}</span>
-                  <div className="small-progress">
-                    <span style={{ width: `${55 + index * 15}%` }} />
-                  </div>
                 </div>
-                <strong className="course-percent">{55 + index * 15}%</strong>
               </div>
             ))}
+            {subjects.length === 0 && (
+              <p className="dashboard-empty-note">No courses yet. Add a course to start tracking your learning.</p>
+            )}
           </div>
         </div>
       </section>
