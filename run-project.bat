@@ -14,5 +14,6 @@ start "VivaMate Backend" cmd /k "cd /d ""%~dp0backend"" && npm install && npm ru
 echo Starting VivaMate-AI frontend...
 start "VivaMate Frontend" cmd /k "cd /d ""%~dp0client"" && npm install && npm run dev -- --host 0.0.0.0"
 
-echo VivaMate is starting. Open http://localhost:5173/
+echo VivaMate is starting. Opening http://localhost:5173/
+start "" "http://localhost:5173/"
 pause
