@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { readStoredJSON } from "../utils/session";
 
 const initialTasks = [
   {
@@ -29,9 +30,7 @@ const initialTasks = [
 
 function Tasks() {
   const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem("vivaMateTasks");
-
-    return savedTasks ? JSON.parse(savedTasks) : initialTasks;
+    return readStoredJSON("vivaMateTasks", initialTasks);
   });
 
   const [filter, setFilter] = useState("All");

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { readStoredJSON } from "../utils/session";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -8,11 +9,8 @@ function Dashboard() {
     localStorage.getItem("vivaMateUserName") || "Student";
 
   const tasks = useMemo(() => {
-    const savedTasks = localStorage.getItem("vivaMateTasks");
-
-    if (savedTasks) {
-      return JSON.parse(savedTasks);
-    }
+    const savedTasks = readStoredJSON("vivaMateTasks", null);
+    if (savedTasks) return savedTasks;
 
     return [
       {
@@ -44,7 +42,7 @@ function Dashboard() {
 
   const history = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("vivaMateHistory") || "[]");
+      return readStoredJSON("vivaMateHistory", []);
     } catch {
       return [];
     }
@@ -52,7 +50,7 @@ function Dashboard() {
 
   const subjects = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("vivaMateSubjects") || "[]");
+      return readStoredJSON("vivaMateSubjects", []);
     } catch {
       return [];
     }
@@ -60,7 +58,7 @@ function Dashboard() {
 
   const generatedSets = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("vivaMateGeneratedSets") || "[]");
+      return readStoredJSON("vivaMateGeneratedSets", []);
     } catch {
       return [];
     }

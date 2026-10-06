@@ -5,7 +5,7 @@ import { isUserLoggedIn } from "../utils/session";
 function ProtectedRoute() {
   const location = useLocation();
 
-  if (!isUserLoggedIn()) {
+  if (!isUserLoggedIn() || !localStorage.getItem("vivaMateToken")) {
     return (
       <Navigate
         to="/login"

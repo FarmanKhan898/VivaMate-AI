@@ -5624,6 +5624,16 @@ body.dark-theme .auth-form label {
   font-weight: 800;
 }
 
+.documents-meta {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .documents-modal-actions {
   display: flex;
   align-items: center;

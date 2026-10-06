@@ -20,6 +20,7 @@ import Quizzes from "./pages/Quizzes";
 import Assistant from "./pages/Assistant";
 import Profile from "./pages/Profile";
 import Documents from "./pages/Documents.jsx";
+import History from "./pages/History";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="/documents" element={<Documents />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/quizzes" element={<Quizzes />} />
+            <Route path="/history" element={<History />} />
             <Route path="/assistant" element={<Assistant />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

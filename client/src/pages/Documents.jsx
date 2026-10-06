@@ -49,6 +49,7 @@ function Documents() {
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("");
@@ -233,12 +234,7 @@ function Documents() {
   };
 
   const handleOpenDocument = (document) => {
-    window.alert(
-      `${document.name}\n\n` +
-        `Subject: ${document.subject}\n` +
-        `Status: ${document.status}\n\n` +
-        "Document analysis will be connected in the next phase."
-    );
+    setSelectedDocument(document);
   };
 
   const handleStudyFileChange = async (event) => {
@@ -840,7 +836,7 @@ function Documents() {
                       handleOpenDocument(document)
                     }
                   >
-                    Open →
+                    Details →
                   </button>
                 </div>
               </article>
@@ -993,6 +989,35 @@ function Documents() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedDocument && (
+        <div
+          className="documents-modal-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedDocument(null);
+          }}
+        >
+          <div className="documents-modal" role="dialog" aria-modal="true" aria-labelledby="document-details-title">
+            <div className="documents-modal-header">
+              <div>
+                <span className="documents-eyebrow">DOCUMENT DETAILS</span>
+                <h2 id="document-details-title">{selectedDocument.name}</h2>
+                <p>Use these details to set up a study session. Add the source notes in the workspace to generate materials.</p>
+              </div>
+              <button className="documents-modal-close" onClick={() => setSelectedDocument(null)} aria-label="Close document details">×</button>
+            </div>
+            <div className="documents-meta">
+              <span>Subject: {selectedDocument.subject}</span>
+              <span>Type: {selectedDocument.type}</span>
+              <span>Size: {selectedDocument.size}</span>
+              <span>Added: {selectedDocument.uploadedAt}</span>
+            </div>
+            <div className="documents-modal-actions">
+              <button className="documents-primary-button" onClick={() => { setStudySubject(selectedDocument.subject); setStudyTopic(selectedDocument.name.replace(/\.[^.]+$/, "")); setStudyContent(""); setSelectedDocument(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Use as Study Topic</button>
+            </div>
           </div>
         </div>
       )}

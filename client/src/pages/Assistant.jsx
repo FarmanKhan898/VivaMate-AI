@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { readStoredJSON } from "../utils/session";
 
 const initialMessages = [
   {
@@ -11,13 +12,7 @@ const initialMessages = [
 
 function Assistant() {
   const [messages, setMessages] = useState(() => {
-    const savedMessages = localStorage.getItem(
-      "vivaMateChatMessages"
-    );
-
-    return savedMessages
-      ? JSON.parse(savedMessages)
-      : initialMessages;
+    return readStoredJSON("vivaMateChatMessages", initialMessages);
   });
 
   const [input, setInput] = useState("");

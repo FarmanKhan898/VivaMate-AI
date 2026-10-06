@@ -16,6 +16,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -124,45 +125,24 @@ function Login() {
             </label>
 
             <div className="auth-form-options">
-              <label className="remember-option">
-                <input type="checkbox" />
-                <span>Remember me</span>
-              </label>
-
               <button
                 type="button"
                 className="forgot-button"
                 onClick={() =>
-                  window.alert(
-                    "Password recovery will be available when backend authentication is connected."
-                  )
+                  setNotice("Password recovery is not configured yet. Contact your VivaMate administrator to reset your password.")
                 }
               >
                 Forgot password?
               </button>
             </div>
 
+            {notice && <div className="form-error" role="status">{notice}</div>}
+
             <button type="submit" className="auth-submit-button" disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Sign In"}
               <span>→</span>
             </button>
           </form>
-
-          <div className="auth-divider">
-            <span>or continue with</span>
-          </div>
-
-          <button
-            className="social-login-button"
-            onClick={() =>
-              window.alert(
-                "Social login will be connected in the backend version."
-              )
-            }
-          >
-            <span>G</span>
-            Continue with Google
-          </button>
 
           <p className="auth-bottom-text">
             Don&apos;t have an account?{" "}

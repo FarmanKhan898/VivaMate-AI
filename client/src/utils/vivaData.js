@@ -34,7 +34,8 @@ export const defaultSubjects = [
 export function getStoredSubjects() {
   try {
     const saved = localStorage.getItem("vivaMateSubjects");
-    return saved ? JSON.parse(saved) : defaultSubjects;
+    const parsed = saved ? JSON.parse(saved) : defaultSubjects;
+    return Array.isArray(parsed) ? parsed : defaultSubjects;
   } catch {
     return defaultSubjects;
   }

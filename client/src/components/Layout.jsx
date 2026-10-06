@@ -165,6 +165,11 @@ function Layout() {
       icon: "✎",
     },
     {
+      name: "Study History",
+      path: "/history",
+      icon: "◷",
+    },
+    {
       name: "AI Assistant",
       path: "/assistant",
       icon: "✦",
@@ -186,6 +191,7 @@ function Layout() {
       "/documents": "My Documents",
       "/tasks": "My Tasks",
       "/quizzes": "Quizzes",
+      "/history": "Study History",
       "/assistant": "AI Assistant",
       "/profile": "My Profile",
     };

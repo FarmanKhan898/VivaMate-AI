@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { evaluateAnswer } from "../utils/vivaData";
+import { readStoredJSON } from "../utils/session";
 
 function Quizzes() {
   const [generatedSets, setGeneratedSets] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("vivaMateGeneratedSets") || "[]");
+      return readStoredJSON("vivaMateGeneratedSets", []);
     } catch {
       return [];
     }
@@ -59,7 +60,7 @@ function Quizzes() {
   };
 
   const saveHistory = (score) => {
-    const history = JSON.parse(localStorage.getItem("vivaMateHistory") || "[]");
+    const history = readStoredJSON("vivaMateHistory", []);
     const entry = {
       id: Date.now(),
       date: new Date().toISOString(),
