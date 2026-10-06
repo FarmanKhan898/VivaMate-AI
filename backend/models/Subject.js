@@ -11,10 +11,12 @@ const subjectSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: 120,
     },
     description: {
       type: String,
       default: '',
+      maxlength: 2000,
     },
     level: {
       type: String,
@@ -22,7 +24,21 @@ const subjectSchema = new mongoose.Schema(
       default: 'Beginner',
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      transform(_document, result) {
+        result.id = result._id.toString();
+        result.userId = result.userId.toString();
+        delete result._id;
+        return result;
+      },
+    },
+  }
 );
+
+subjectSchema.index({ userId: 1, createdAt: -1 });
+subjectSchema.index({ userId: 1, name: 1 }, { unique: true });
 
 export default mongoose.models.Subject || mongoose.model('Subject', subjectSchema);

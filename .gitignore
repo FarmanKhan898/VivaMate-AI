@@ -2,6 +2,10 @@
 node_modules/
 **/node_modules/
 
+# Local MongoDB runtime data
+backend/data/mongodb/
+backend/data/mongodb.log
+
 # Environment variables and secrets
 .env
 .env.*

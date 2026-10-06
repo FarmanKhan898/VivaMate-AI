@@ -15,6 +15,12 @@ if not defined NPM_CMD (
     set "NPM_CMD=%LOCALAPPDATA%\VivaMateAI\node\npm.cmd"
 )
 
+echo Preparing MongoDB configuration...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\ensure-backend-config.ps1"
+if errorlevel 1 goto :failed
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\ensure-mongodb.ps1"
+if errorlevel 1 goto :failed
+
 if not exist "%~dp0backend\node_modules\express" (
     echo Installing backend requirements...
     call "%NPM_CMD%" --prefix "%~dp0backend" ci

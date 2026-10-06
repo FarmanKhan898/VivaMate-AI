@@ -13,13 +13,27 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength: 254,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
     password: {
       type: String,
       required: true,
+      select: false,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      transform(_document, result) {
+        result.id = result._id.toString();
+        delete result._id;
+        delete result.password;
+        return result;
+      },
+    },
+  }
 );
 
 export default mongoose.models.User || mongoose.model('User', userSchema);

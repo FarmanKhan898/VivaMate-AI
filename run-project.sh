@@ -55,6 +55,25 @@ if [[ -z "$NPM_CMD" ]]; then
   NPM_CMD="$RUNTIME_DIR/bin/npm"
 fi
 
+NODE_CMD="$(command -v node || true)"
+if [[ -z "$NODE_CMD" && -n "${RUNTIME_DIR:-}" ]]; then
+  NODE_CMD="$RUNTIME_DIR/bin/node"
+fi
+
+if [[ ! -f backend/.env ]]; then
+  JWT_SECRET="$("$NODE_CMD" -p "require('node:crypto').randomBytes(48).toString('hex')")"
+  printf 'PORT=5000\nJWT_SECRET=%s\nMONGO_URI=mongodb://127.0.0.1:27017/vivamate-ai\nMONGO_SERVER_SELECTION_TIMEOUT_MS=10000\n' "$JWT_SECRET" > backend/.env
+  echo "Created backend/.env with a private JWT secret and local MongoDB URL."
+fi
+
+MONGO_URI="$(sed -n 's/^MONGO_URI=//p' backend/.env | sed -n '1p')"
+if [[ "$MONGO_URI" =~ ^mongodb://(127\.0\.0\.1|localhost):27017(/|$) ]]; then
+  if ! "$NODE_CMD" -e 'const s=require("node:net").connect(27017,"127.0.0.1");s.on("connect",()=>{s.end();process.exit(0)});s.on("error",()=>process.exit(1))'; then
+    echo "MongoDB is not listening locally on port 27017. Start MongoDB or set backend/.env MONGO_URI to MongoDB Atlas."
+    exit 1
+  fi
+fi
+
 if [[ ! -d backend/node_modules/express ]]; then
   echo "Installing backend requirements..."
   "$NPM_CMD" --prefix "$PWD/backend" ci
