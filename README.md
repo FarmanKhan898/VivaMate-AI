@@ -2,6 +2,8 @@
 
 ## Run the project with one click
 
+The launcher starts both the backend and frontend, then opens the site. If Node.js/npm are missing, it downloads an official portable Node.js LTS runtime for the current operating system. The first run needs an internet connection to download Node.js and install locked project dependencies. Later runs reuse the runtime and installed dependencies.
+
 ### Windows
 Double-click `run-project.bat` in the project root.
 
